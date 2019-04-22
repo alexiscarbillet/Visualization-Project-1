@@ -1,7 +1,7 @@
 # Visualization Project - European gold reserves
 
 ## Overview
-This is a project conducted by three IMT Mines Ales students for a Dataviz class.
+This is a project conducted by three IMT Mines Alès students for a DataViz class.
 <br>
 This projet aims to analyze the evolution from 2000 to 2014 of gold reserves within the European Union (E.U.), through data visualization techniques and methods.
 <br><br>
@@ -21,4 +21,4 @@ install_github("holtzy/epuRate", force=TRUE)
 ```
 
 ## Authors
-Alexis CARBILLET, Benjamin GRONDIN, and Esther JAMET, three students from the French engineering school IMT Mines Ales.
+Alexis CARBILLET, Benjamin GRONDIN, and Esther JAMET, three students from the French engineering school IMT Mines Alès.
