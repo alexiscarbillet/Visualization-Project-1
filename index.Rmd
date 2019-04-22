@@ -1,87 +1,132 @@
 ---
-title: "Visualization Project"
-author: "ESTHER JAMET, BENJAMIN GRONDIN, ALEXIS CARBILLET"
-date: "17 avril 2019"
-output: html_document
+title: "Visualization Project - European gold reserves"
+author: "Alexis CARBILLET, Benjamin GRONDIN, Esther JAMET"
+date: "12-22/04/2019"
+output:
+  epuRate::epurate:
+    toc: TRUE
+    number_sections: TRUE
+    code_folding: "show"
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
 
-# Choix de la base de donnée
-<br>
-La presse décrit souvent l'endettement des pays, donnant une vision pessimiste des situations économiques des pays, notamment en Europe. La montée en puissance des pays émergents, tant sur le plan politique qu'économique renforce ce sentiment d'impuissance chez les populations européennes. Il nous a semblé judicieux d'étudier l'évolution des réserves d'or de ces pays plutôt que leurs endettements afin d'avoir un champ d'étude différent de ce que les journeaux font habituellement.
-Dans notre étude, nous avons utiliser une base de données qui se trouve en suivant ce lien:<https://www.data.gouv.fr/fr/datasets/reserves-officielles-de-28-pays-europeens/>. Il s'agit d'un excel contenant une colonne principale pour chaque pays de l'union européenne. Chaque colonne principale est constituée de 4 sous colonnes. La première correpond aux réserves d'or en tonnes, la seconde sa conversion en millions de dollards américain,la troisième sa réserve de change en millions de dollards américain et la dernière le total des deux dernières colonnes.
-<br>
-Par la suite, on traitera un dataset simplifié qui ne gardera que la permière sous colonne de chaque pays, c'est-à-dire sa réserve d'or en tonnes. Il se trouve sous format csv au nom de european-reserves-by-country-simplify.csv au lien suivant: <https://raw.githubusercontent.com/alexiscarbillet/Visualization-Project/master/european-reserves-by-country-simplify.csv>
-<br>
+<br><br>
 
-# Choix des graphiques
+> Omniprésente dans notre société, la presse traite souvent de l'endettement des pays, en donnant une vision pessimiste des situations économiques des pays, notamment en Europe. La montée en puissance des pays émergents, tant sur le plan politique qu'économique renforce ce sentiment d'impuissance chez les populations européennes. 
 <br>
-La base de données contient différentes séries temporelles. D'après le site data to viz, nous avions le choix entre différents types de graphiques. Nous pouvions utiliser les graphiques suivants: boxplot, violin, ridgeline, heatmap, line plot, stacked area et stream graph.
-<br>
-Nous avons choisi de traiter les deux graphiques suivants: lineplot et heatmap. De cette façon nous avons deux catégories de graphiques différentes car le lineplot appartenant à aux graphiques d'évolution et le heatmap à ceux de corrélation.
-<br>
+Il nous a semblé judicieux d'étudier l'évolution des réserves d'or de ces pays plutôt que leur endettement, afin d'avoir une vision différente de ce que les journaux font paraître habituellement.
 
-# Caractéristiques du dataset simplifié
-<br>
-```{r}
-# importation les données
-data <- read.table("https://raw.githubusercontent.com/alexiscarbillet/Visualization-Project/master/european-reserves-by-country-simplify.csv", header=TRUE, sep=";")
-# traitement des données
-summary(data[2:29]) #la première colonne correspond aux dates donc on a pas besoin de les traiter dans ce cas
-```
-Cela nous permet de connaitre la moyenne, élément manquant dans le graphique boxplot. Le reste des informations se retrouvent dans ce graphique. Cependant, cela ne nous permet pas de connaitre les valeurs de chaque données d'où le besoin de tracer les nuages de points sur le graphique suivant.
-<br>
-# Code du graphique boxplot
-```{r,warning=FALSE,message=FALSE,fig.align='center',fig.height=15,fig.width=9}
-# import des libraries
+
+
+# Librairies & base de données
+***
+
+
+## Import des librairies
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(rmarkdown)
+library(epuRate)      # Install with devtools: install_github("holtzy/epuRate", force=TRUE)
 library(ggplot2)
 library(plotly)
-# ouverture du fichier csv et importation des données
-data <- read.table("https://raw.githubusercontent.com/alexiscarbillet/Visualization-Project/master/european-reserves-by-country-simplify.csv", header=TRUE, sep=";")
-# on met les noms en ligne, chaque valeur de réserve en or doit avoir un nom associé qui est celui de son pays
-nom=sort(rep(names(data)[2:29],57)) 
-# on initialise la ligne où seront stockés les valeurs des réserves d'or de tous les pays de l'union européenne
-value=c(seq(1,1596))
-# on met en ligne les valeurs des réserves d'or de tous les pays de l'union européenne
+```
+
+
+## Base de données
+Dans notre étude, nous avons utilisé une base de données qui se trouve sur [le site data.gouv.fr](https://www.data.gouv.fr/fr/datasets/reserves-officielles-de-28-pays-europeens). Cette base de données représente les réserves d'or de 28 pays européens au cours du temps (du 31 mars 2000 jusqu'au 31 mars 2014) regroupés dans un tableur Excel. Sous chaque pays, se déclinent 4 sous-colonnes : la première correspond aux réserves d'or en tonnes, la seconde colonne la conversion de ces réserves en millions de dollars américains, la troisième sa réserve de change en millions de dollars américains et la dernière le total en dollars américains des deux dernières colonnes.
+<br>
+Par la suite, on traitera un dataset simplifié qui ne gardera que la permière sous-colonne de chaque pays, c'est-à-dire sa réserve d'or en tonnes. Il se trouve sous format csv au nom de european-reserves-by-country-simplified.csv au [lien suivant](https://raw.githubusercontent.com/estherjamet/Visualization-Project/master/european-reserves-by-country-simplified.csv).
+
+```{r}
+# Import des données
+data <- read.table("https://raw.githubusercontent.com/estherjamet/Visualization-Project/master/european-reserves-by-country-simplified.csv", header = TRUE, sep = ";")
+
+# Visualisation de la base de données
+data %>% head()
+
+# Statistiques simples des données
+summary(data[2:29]) # on n'étudie pas la première colonne, correspondant aux dates
+```
+
+Le dataset contient `r nrow(data)` lignes et `r ncol(data)` colonnes.
+
+
+
+# Analyse - Graphiques
+***
+La base de données contient différentes séries temporelles. D'après le site "data to viz", nous avions le choix entre différents types de graphiques. Nous pouvions utiliser les graphiques suivants: boxplot, violin, ridgeline, heatmap, lineplot, stacked area et stream graph.
+<br>
+Nous avons choisi de traiter les deux graphiques suivants: boxplot et heatmap, qui appartiennent à deux catégories de graphiques différentes car le boxplot est un graphique de distribution et le heatmap un graphique de corrélation.
+
+
+## Boxplot
+
+### Graphique
+```{r, warning=FALSE, message=FALSE, fig.height=10}
+# On met les noms en ligne, chaque valeur de réserve en or doit avoir un nom associé qui est celui de son pays
+nom <- sort(rep(names(data)[2:29],57)) 
+
+# On initialise la ligne où seront stockés les valeurs des réserves d'or de tous les pays de l'union européenne
+value <- c(seq(1,1596))
+
+# On met en ligne les valeurs des réserves d'or de tous les pays de l'union européenne
 for(i in seq(2,29))
   for(j in seq(1,57))
-    value[((i-2)*57+j)]=data[j,i]
-data2=data.frame(nom,value) # on créé le nouveau datatset à partir de nom et value
-# on plot le graphique
-p<-qplot(x=nom , y=value , data=data2, main="boxplot des réserves d'or en tonnes selon les pays de l'UE", xlab="Nom du pays", ylab="quantité d'or en tonnes",geom=c("boxplot","jitter"))+
-  coord_flip() # échange les axes
+    value[((i-2)*57+j)] <- data[j,i]
+
+# On crée le nouveau dataset à partir de nom et value
+data2 <- data.frame(nom, value) 
+
+# On plot le graphique
+p <- qplot(
+      x = nom, 
+      y = value, 
+      data = data2, 
+      main = "Boxplot des réserves d'or en tonnes selon les pays de l'UE", 
+      xlab = "Nom du pays", 
+      ylab = "Quantité d'or en tonnes", 
+      geom = c("boxplot", "jitter")
+      ) +
+    coord_flip() # échange les axes
+
 ggplotly(p) # le graphique devient interactif
 ```
 
-# Description des résultats du graphique heatmap
-<br>
-On remarque que la plupart des pays de l'union européenne ont des réserves en or constantes. C'est le cas de la Bulgarie, de la Croatie, de Chypre, du Danemark, de la République Tchèque, de l'Estonie, de la Finlande, de l'Hongrie, de l'Irlande, de l'Italie, de la Lituanie, de la Lettonie, du Luxembours, de Malte, de la Pologne, de la Roumanie, de la Slovéquie et de la Slovénie.
-Ces 21 pays représentent 75% des pays de l'union européenne. Peut-on considérer que l'économie de ces pays est menacée? Probablement non. Intéressons-nous maintenant à leurs évolutions aux cours de ces dernières années.
-<br>
+Le boxplot permet de tracer toutes les valeurs statistiques obtenues avec la fonction "summary" auparavant, sauf la moyenne.
+Cependant, le boxplot ne nous permet pas de connaître les valeurs de chaque donnée d'où le besoin de tracer les nuages de points sur le graphique suivant.
 
-# Code du graphique heatmap
-```{r,warning=FALSE,message=FALSE,fig.align='center',fig.height=5,fig.width=9}
-library(plotly)
-# ouverture du fichier csv et importation des données
-data <- read.table("https://raw.githubusercontent.com/alexiscarbillet/Visualization-Project/master/european-reserves-by-country-simplify.csv", header=TRUE, sep=";")
+### Résultats
+On remarque que la plupart des pays de l'Union Européenne ont des réserves en or constantes. C'est le cas de la Bulgarie, de la Croatie, de Chypre, du Danemark, de la République Tchèque, de l'Estonie, de la Finlande, de l'Hongrie, de l'Irlande, de l'Italie, de la Lituanie, de la Lettonie, du Luxembours, de Malte, de la Pologne, de la Roumanie, de la Slovéquie et de la Slovénie.
+<br>
+Ces 21 pays représentent 75% des pays de l'union européenne. Peut-on considérer que l'économie de ces pays est menacée ? Probablement non. Intéressons-nous maintenant à leur évolution au cours de ces dernières années.
 
-a<-as.matrix(data[,2:29]) # on fait de notre sous dataset data[,2:29] une matrice, la première colonne sera utilisée pour l'axe des ordonnées
-#on trace heatmap avec en abscisse les pays et en ordonnées les dates de mesure des réserves d'or des différents pays
-plot_ly(x=names(data[2:29]), y=data[,1],z = a, type = "heatmap")
-# on ne peut pas mettre de label ou de titre en utilsant plot_ly d'où le fait qu'il n'y en ait pas
-# le fait de vouloir les mettre en annotation ne fonctionne pas non plus (ils ne sont pas aux endroits souhaités)
+
+## Heatmap
+
+### Graphique
+```{r, warning=FALSE, message=FALSE}
+# On fait de notre sous-dataset data[,2:29] une matrice.
+# La première colonne sera utilisée pour l'axe des ordonnées
+a <- as.matrix(data[, 2:29]) 
+
+# On trace le heatmap avec en abscisses les pays, et en ordonnées les dates de mesure des réserves d'or des différents pays
+plot_ly(
+        x = names(data[2:29]), 
+        y = data[, 1], 
+        z = a, 
+        type = "heatmap"
+        )
 ```
 
-# Description des résultats du graphique heatmap
+### Résultats
+Nous remarquons que seules les réserves en or françaises ont chuté de manière significative entre les années 2000 et 2014, passant de 3024 tonnes à 2435 tonnes soit une diminution de 19%. Les autres pays de l'Union Européenne ont une réserve d'or constante ou qui a connu une légère baisse, souvent de 300 tonnes (Espagne, Royaume-Uni et Pays-Bas). 
 <br>
-Nous remarquons que seul les réserves en or françaises ont chuté de manière significative entre les années 2000 et 2014 passant de 3024 tonnes à 2435 tonnes soit de 19%.. Les autres pays de l'union européenne ont une réserve d'or constante ou qui a connu une légère baisse, souvent de 300 tonnes (Espagne, Royaume-Uni et Pays-Bas). 
-Si on considère les chiffres relatifs, les Pays-Bas ont connu une chute de leurs réserves d'or de 33%, le Portugual de 36%, l'Espagne de 46% et le Royaume-Uni de 47%. Cela semble important, pourtant en la quantité d'or qu'ils ont perdu est deux fois moins importante que celle de la France. 
-<br>
+Si on considère les chiffres relatifs, les Pays-Bas ont connu une chute de leur réserve d'or de 33%, le Portugal de 36%, l'Espagne de 46% et le Royaume-Uni de 47%. Cela semble important, pourtant la quantité d'or qu'ils ont perdu est deux fois moins importante que celle de la France. 
+
+
 
 # Conclusion
+***
+Pour conclure, la France semble avoir une économie menacée en raison d'une chute importante de ses tonnes d'or. La plupart des autres pays de l'Union Européenne ont eu des réserves d'or quasi-constantes entre 2000 et 2014, alors que la France a vu sa réserve d'or chuter de 589 tonnes soit de 19%. 
 <br>
-Pour conclure, la France semble avoir une économie menacée. En effet, la plupart des autres pays de l'union européenne ont eu des réserves d'or quasi constante entre 2000 et 2014 alors que la France a vu sa réserve d'or chuter de 589 tonnes soit de 19%. Cependant, les chiffres relatifs semblent montrer que les réserves menacées appartiennent aux Pays-Bas, au Portugual, à l'Espagne et au Royaume-Uni.
-<br>
+Cependant, en termes de proportion, les pourcentages montrent que les Pays-Bas, le Portugal, l'Espagne et le Royaume-Uni subissent le plus de perte de leur réserve d'or.
