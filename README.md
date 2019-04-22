@@ -22,3 +22,5 @@ install_github("holtzy/epuRate", force=TRUE)
 
 ## Authors
 Alexis CARBILLET, Benjamin GRONDIN, and Esther JAMET, three students from the French engineering school IMT Mines Alès.
+<br>
+The template used for our web application was created by our DataViz teacher, [Yan Holtz](https://github.com/holtzy).
